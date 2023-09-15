@@ -1,0 +1,34 @@
+version: '3'
+services:
+  fastapi:
+    build:
+      context: ./fastapi
+    ports:
+      - "7666:7666"
+    depends_on:
+      - redis
+
+  vue:
+    build:
+      context: ./vue
+    ports:
+      - "80:80"
+    depends_on:
+      - redis
+      - worker
+      - fastapi
+
+  worker:
+    build:
+      context: ./fastapi
+    command: celery -A worker.celery worker --loglevel=info
+    volumes:
+      - ./fastapi:/usr/src/app
+    depends_on:
+      - redis
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
